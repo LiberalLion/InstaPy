@@ -11,15 +11,13 @@ from selenium.common.exceptions import WebDriverException
 
 def get_log_time():
     """ this method will keep same format for all recored"""
-    log_time = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-    return log_time
+    return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
 def log_follower_num(browser, username, logfolder):
     """Prints and logs the current number of followers to
     a seperate file"""
-    user_link = "https://www.instagram.com/{}".format(username)
+    user_link = f"https://www.instagram.com/{username}"
     web_address_navigator(browser, user_link)
 
     try:
@@ -43,7 +41,7 @@ def log_follower_num(browser, username, logfolder):
         except WebDriverException:
             followed_by = None
 
-    with open("{}followerNum.txt".format(logfolder), "a") as numFile:
+    with open(f"{logfolder}followerNum.txt", "a") as numFile:
         numFile.write("{:%Y-%m-%d %H:%M} {}\n".format(datetime.now(), followed_by or 0))
 
     return followed_by
@@ -52,7 +50,7 @@ def log_follower_num(browser, username, logfolder):
 def log_following_num(browser, username, logfolder):
     """Prints and logs the current number of followers to
     a seperate file"""
-    user_link = "https://www.instagram.com/{}".format(username)
+    user_link = f"https://www.instagram.com/{username}"
     web_address_navigator(browser, user_link)
 
     try:
@@ -76,7 +74,7 @@ def log_following_num(browser, username, logfolder):
         except WebDriverException:
             following_num = None
 
-    with open("{}followingNum.txt".format(logfolder), "a") as numFile:
+    with open(f"{logfolder}followingNum.txt", "a") as numFile:
         numFile.write(
             "{:%Y-%m-%d %H:%M} {}\n".format(datetime.now(), following_num or 0)
         )
@@ -89,13 +87,13 @@ def log_followed_pool(login, followed, logger, logfolder, logtime, user_id):
     a seperate file"""
     try:
         with open(
-            "{0}{1}_followedPool.csv".format(logfolder, login), "a+"
-        ) as followPool:
+                    "{0}{1}_followedPool.csv".format(logfolder, login), "a+"
+                ) as followPool:
             with interruption_handler():
-                followPool.write("{} ~ {} ~ {},\n".format(logtime, followed, user_id))
+                followPool.write(f"{logtime} ~ {followed} ~ {user_id},\n")
 
     except BaseException as e:
-        logger.error("log_followed_pool error {}".format(str(e)))
+        logger.error(f"log_followed_pool error {str(e)}")
 
     # We save all followed to a pool that will never be erase
     log_record_all_followed(login, followed, logger, logfolder, logtime, user_id)
@@ -106,12 +104,12 @@ def log_uncertain_unfollowed_pool(login, person, logger, logfolder, logtime, use
     a seperate file"""
     try:
         with open(
-            "{0}{1}_uncertain_unfollowedPool.csv".format(logfolder, login), "a+"
-        ) as followPool:
+                    "{0}{1}_uncertain_unfollowedPool.csv".format(logfolder, login), "a+"
+                ) as followPool:
             with interruption_handler():
-                followPool.write("{} ~ {} ~ {},\n".format(logtime, person, user_id))
+                followPool.write(f"{logtime} ~ {person} ~ {user_id},\n")
     except BaseException as e:
-        logger.error("log_uncertain_unfollowed_pool error {}".format(str(e)))
+        logger.error(f"log_uncertain_unfollowed_pool error {str(e)}")
 
 
 def log_record_all_unfollowed(login, unfollowed, logger, logfolder):
@@ -119,21 +117,21 @@ def log_record_all_unfollowed(login, unfollowed, logger, logfolder):
     a seperate file"""
     try:
         with open(
-            "{0}{1}_record_all_unfollowed.csv".format(logfolder, login), "a+"
-        ) as followPool:
+                    "{0}{1}_record_all_unfollowed.csv".format(logfolder, login), "a+"
+                ) as followPool:
             with interruption_handler():
-                followPool.write("{},\n".format(unfollowed))
+                followPool.write(f"{unfollowed},\n")
     except BaseException as e:
-        logger.error("log_record_all_unfollowed_pool error {}".format(str(e)))
+        logger.error(f"log_record_all_unfollowed_pool error {str(e)}")
 
 
 def log_record_all_followed(login, followed, logger, logfolder, logtime, user_id):
     """logs all followed ever to a pool that will never be erase"""
     try:
         with open(
-            "{0}{1}_record_all_followed.csv".format(logfolder, login), "a+"
-        ) as followPool:
+                    "{0}{1}_record_all_followed.csv".format(logfolder, login), "a+"
+                ) as followPool:
             with interruption_handler():
-                followPool.write("{} ~ {} ~ {},\n".format(logtime, followed, user_id))
+                followPool.write(f"{logtime} ~ {followed} ~ {user_id},\n")
     except BaseException as e:
-        logger.error("log_record_all_followed_pool error {}".format(str(e)))
+        logger.error(f"log_record_all_followed_pool error {str(e)}")

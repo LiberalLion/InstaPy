@@ -69,18 +69,14 @@ def check_image(
                 clarifai_tags.extend(results)
 
         logger.info(
-            "source_link {} got predicted result(s):\n{}".format(
-                source_link, clarifai_tags
-            )
+            f"source_link {source_link} got predicted result(s):\n{clarifai_tags}"
         )
 
         # Will not comment on an image if any of the tags in
         # img_tags_skip_if_contain are matched
         if given_tags_in_result(img_tags_skip_if_contain, clarifai_tags):
             logger.info(
-                'Not Commenting, image contains concept(s): "{}".'.format(
-                    ", ".join(list(set(clarifai_tags) & set(img_tags_skip_if_contain)))
-                )
+                f'Not Commenting, image contains concept(s): "{", ".join(list(set(clarifai_tags) & set(img_tags_skip_if_contain)))}".'
             )
             return False, [], clarifai_tags
 
@@ -89,22 +85,20 @@ def check_image(
                 return True, comments, clarifai_tags
             elif given_tags_in_result(tags, clarifai_tags, full_match):
                 logger.info(
-                    'Not Commenting, image contains concept(s): "{}".'.format(
-                        ", ".join(list(set(clarifai_tags) & set(tags)))
-                    )
+                    f'Not Commenting, image contains concept(s): "{", ".join(list(set(clarifai_tags) & set(tags)))}".'
                 )
                 return False, [], clarifai_tags
 
         return True, [], clarifai_tags
 
     except Exception as err:
-        logger.error("Image check error: {}".format(err))
+        logger.error(f"Image check error: {err}")
 
 
 def given_tags_in_result(search_tags, clarifai_tags, full_match=False):
     """Checks the clarifai tags if it contains one (or all) search tags """
     if full_match:
-        return all([tag in clarifai_tags for tag in search_tags])
+        return all(tag in clarifai_tags for tag in search_tags)
     else:
         return any((tag in clarifai_tags for tag in search_tags))
 
@@ -124,17 +118,16 @@ def get_source_link(browser):
             ).get_attribute("src")
         )
     except NoSuchElementException:
-        source.append(
-            browser.find_element_by_xpath(
-                read_xpath(get_source_link.__name__, "video")
-            ).get_attribute("src")
+        source.extend(
+            (
+                browser.find_element_by_xpath(
+                    read_xpath(get_source_link.__name__, "video")
+                ).get_attribute("src"),
+                browser.find_element_by_xpath(
+                    read_xpath(get_source_link.__name__, "image_alt")
+                ).get_attribute("src"),
+            )
         )
-        source.append(
-            browser.find_element_by_xpath(
-                read_xpath(get_source_link.__name__, "image_alt")
-            ).get_attribute("src")
-        )
-
     return source
 
 
@@ -174,21 +167,16 @@ def get_clarifai_response(clarifai_api, clarifai_model, source_link, check_video
         and source_link[0].endswith("mp4")
         and clarifai_model.lower() in video_models
     ):
-        response = model.predict_by_url(source_link[0], is_video=True)
-    # If source is video but model does not accept video inputs or
-    # check_video is False, analyze content of keyframe
+        return model.predict_by_url(source_link[0], is_video=True)
     elif source_link[0].endswith("mp4"):
-        response = model.predict_by_url(source_link[1])
+        return model.predict_by_url(source_link[1])
     else:
-        response = model.predict_by_url(source_link[0])
-
-    return response
+        return model.predict_by_url(source_link[0])
 
 
 def get_clarifai_tags(clarifai_response, probability):
     """Get the response from the Clarifai API and return results filtered by
     concepts with a confidence set by probability parameter (default 50%)"""
-    results = []
     concepts = []
 
     # Parse response for Color model
@@ -243,9 +231,8 @@ def get_clarifai_tags(clarifai_response, probability):
     except KeyError:
         pass
 
-    # Filter concepts based on probability threshold
-    for concept in concepts:
-        if float([x for x in concept.values()][0]) > probability:
-            results.append(str([x for x in concept.keys()][0]))
-
-    return results
+    return [
+        str(list(concept.keys())[0])
+        for concept in concepts
+        if float(list(concept.values())[0]) > probability
+    ]

@@ -140,8 +140,7 @@ def set_automated_followed_pool(
 
     except BaseException as exc:
         logger.error(
-            "Error occurred while generating a user list from the followed "
-            "pool!\n\t{}".format(str(exc).encode("utf-8"))
+            f'Error occurred while generating a user list from the followed pool!\n\t{str(exc).encode("utf-8")}'
         )
 
     return automatedFollowedPool

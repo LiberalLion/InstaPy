@@ -98,8 +98,7 @@ def evaluate_mandatory_words(text, mandatory_words_list, level=0):
         # this is an "or" level so at least one of the words of compound sub-conditions should match
         for word in mandatory_words_list:
             if isinstance(word, list):
-                res = evaluate_mandatory_words(text, word, level + 1)
-                if res:
+                if res := evaluate_mandatory_words(text, word, level + 1):
                     return True
             elif word.lower() in text:
                 return True

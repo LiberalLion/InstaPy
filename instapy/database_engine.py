@@ -92,9 +92,7 @@ def create_database(address, logger, name):
 
     except Exception as exc:
         logger.warning(
-            "Wah! Error occurred while getting a DB for '{}':\n\t{}".format(
-                name, str(exc).encode("utf-8")
-            )
+            f"""Wah! Error occurred while getting a DB for '{name}':\n\t{str(exc).encode("utf-8")}"""
         )
 
     finally:
@@ -155,9 +153,7 @@ def get_profile(name, address, logger):
                 profile = select_profile_by_username(cursor, name)
     except Exception as exc:
         logger.warning(
-            "Heeh! Error occurred while getting a DB profile for '{}':\n\t{}".format(
-                name, str(exc).encode("utf-8")
-            )
+            f"""Heeh! Error occurred while getting a DB profile for '{name}':\n\t{str(exc).encode("utf-8")}"""
         )
     finally:
         if conn:
@@ -180,6 +176,4 @@ def add_profile(conn, cursor, name):
 
 def select_profile_by_username(cursor, name):
     cursor.execute(SELECT_FROM_PROFILE_WHERE_NAME, {"name": name})
-    profile = cursor.fetchone()
-
-    return profile
+    return cursor.fetchone()
