@@ -130,7 +130,7 @@ def comment_image(browser, username, comments, blacklist, logger, logfolder):
     except WebDriverException as ex:
         logger.error(ex)
 
-    logger.info("--> Commented: {}".format(rand_comment.encode("utf-8")))
+    logger.info(f'--> Commented: {rand_comment.encode("utf-8")}')
     Event().commented(username)
 
     # get the post-comment delay time to sleep
@@ -148,26 +148,20 @@ def verify_commenting(browser, maximum, minimum, logger):
 
     commenting_state, msg = is_commenting_enabled(browser, logger)
     if commenting_state is not True:
-        disapproval_reason = "--> Not commenting! {}".format(msg)
+        disapproval_reason = f"--> Not commenting! {msg}"
         return False, disapproval_reason
 
     comments_count, msg = get_comments_count(browser, logger)
     if comments_count is None:
-        disapproval_reason = "--> Not commenting! {}".format(msg)
+        disapproval_reason = f"--> Not commenting! {msg}"
         return False, disapproval_reason
 
     if maximum is not None and comments_count > maximum:
-        disapproval_reason = (
-            "Not commented on this post! ~more comments exist"
-            " off maximum limit at {}".format(comments_count)
-        )
+        disapproval_reason = f"Not commented on this post! ~more comments exist off maximum limit at {comments_count}"
         return False, disapproval_reason
 
     elif minimum is not None and comments_count < minimum:
-        disapproval_reason = (
-            "Not commented on this post! ~less comments exist"
-            " off minumum limit at {}".format(comments_count)
-        )
+        disapproval_reason = f"Not commented on this post! ~less comments exist off minumum limit at {comments_count}"
         return False, disapproval_reason
 
     return True, "Approval"
@@ -211,26 +205,28 @@ def verify_mandatory_words(
             else ""
         )
 
-        if len(mand_words) > 0:
-            if not evaluate_mandatory_words(text, mand_words):
-                return False, [], "mandatory words not in post desc"
+    if len(mand_words) > 0:
+        if not evaluate_mandatory_words(text, mand_words):
+            return False, [], "mandatory words not in post desc"
 
-        if isinstance(comments[0], dict):
-            # The comments definition is a compound definition of conditions and comments
-            for compund_comment in comments:
+    if isinstance(comments[0], dict):
+        return next(
+            (
+                (True, compund_comment["comments"], "Approval")
+                for compund_comment in comments
                 if (
                     "mandatory_words" not in compund_comment
                     or evaluate_mandatory_words(
                         text, compund_comment["mandatory_words"]
                     )
-                ):
-                    return True, compund_comment["comments"], "Approval"
-            return (
+                )
+            ),
+            (
                 False,
                 [],
                 "Coulnd't match the mandatory words in any comment definition",
-            )
-
+            ),
+        )
     return True, comments, "Approval"
 
 
@@ -275,10 +271,9 @@ def get_comments_on_post(
     explicit_wait(browser, "PFL", [], logger, 10)
 
     try:
-        all_comment_like_buttons = browser.find_elements_by_xpath(
+        if all_comment_like_buttons := browser.find_elements_by_xpath(
             like_button_full_XPath
-        )
-        if all_comment_like_buttons:
+        ):
             comments_block = browser.find_elements_by_xpath(comments_block_XPath)
             for comment_line in comments_block:
                 commenter_elem = comment_line.find_element_by_xpath(
@@ -295,21 +290,18 @@ def get_comments_on_post(
                     continue
 
                 comment_elem = comment_line.find_elements_by_tag_name("span")[0]
-                comment = extract_text_from_element(comment_elem)
-                if comment:
+                if comment := extract_text_from_element(comment_elem):
                     comments.append(comment)
                 else:
                     commenters.remove(commenters[-1])
                     continue
 
         else:
-            comment_unlike_buttons = browser.find_elements_by_xpath(
+            if comment_unlike_buttons := browser.find_elements_by_xpath(
                 unlike_button_full_XPath
-            )
-            if comment_unlike_buttons:
+            ):
                 logger.info(
-                    "There are {} comments on this post and all "
-                    "of them are already liked.".format(len(comment_unlike_buttons))
+                    f"There are {len(comment_unlike_buttons)} comments on this post and all of them are already liked."
                 )
             else:
                 logger.info("There are no any comments available on this post.")
@@ -330,14 +322,10 @@ def get_comments_on_post(
 
         if len(comment_data) < orig_amount:
             logger.info(
-                "Could grab only {} usable comments from this post..".format(
-                    len(comment_data)
-                )
+                f"Could grab only {len(comment_data)} usable comments from this post.."
             )
         else:
-            logger.info(
-                "Grabbed {} usable comments from this post..".format(len(comment_data))
-            )
+            logger.info(f"Grabbed {len(comment_data)} usable comments from this post..")
 
         return comment_data
 
@@ -362,9 +350,7 @@ def is_commenting_enabled(browser, logger):
             )
 
         except Exception as e:
-            msg = "Failed to check comments' status for verification!\n\t{}".format(
-                str(e).encode("utf-8")
-            )
+            msg = f"""Failed to check comments' status for verification!\n\t{str(e).encode("utf-8")}"""
             return False, msg
 
     if comments_disabled is True:
@@ -393,7 +379,7 @@ def get_comments_count(browser, logger):
             )
 
         except Exception as e:
-            msg = "Failed to get comments' count!\n\t{}".format(str(e).encode("utf-8"))
+            msg = f"""Failed to get comments' count!\n\t{str(e).encode("utf-8")}"""
             return None, msg
 
     # if not comments_count:

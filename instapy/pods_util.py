@@ -22,9 +22,11 @@ def get_server_endpoint(topic):
 def get_recent_posts_from_pods(topic, logger):
     """ fetches all recent posts shared with pods """
     params = {"topic": topic}
-    r = requests.get(get_server_endpoint(topic) + "/getRecentPostsV1", params=params)
+    r = requests.get(
+        f"{get_server_endpoint(topic)}/getRecentPostsV1", params=params
+    )
     try:
-        logger.info("Downloaded postids from Pod {}:".format(topic))
+        logger.info(f"Downloaded postids from Pod {topic}:")
         if r.status_code == 200:
             logger.info(r.json())
             return r.json()
@@ -32,7 +34,7 @@ def get_recent_posts_from_pods(topic, logger):
             logger.error(r.text)
             return []
     except Exception as err:
-        logger.error("Could not get postids from pod {} - {}".format(topic, err))
+        logger.error(f"Could not get postids from pod {topic} - {err}")
         return []
 
 
@@ -52,9 +54,7 @@ def group_posts(posts, logger):
             else:
                 normal_post_ids.append(postobj)
         except Exception as err:
-            logger.error(
-                "Failed with Error {}, please upgrade your instapy".format(err)
-            )
+            logger.error(f"Failed with Error {err}, please upgrade your instapy")
             normal_post_ids.append(postobj)
     return no_comments_post_ids, light_post_ids, normal_post_ids, heavy_post_ids
 
@@ -62,9 +62,11 @@ def group_posts(posts, logger):
 def share_my_post_with_pods(postid, topic, engagement_mode, logger):
     """ share_my_post_with_pod """
     params = {"postid": postid, "topic": topic, "mode": engagement_mode}
-    r = requests.get(get_server_endpoint(topic) + "/publishMyLatestPost", params=params)
+    r = requests.get(
+        f"{get_server_endpoint(topic)}/publishMyLatestPost", params=params
+    )
     try:
-        logger.info("Publishing to Pods {}".format(postid))
+        logger.info(f"Publishing to Pods {postid}")
         if r.status_code == 200:
             logger.info(r.text)
             return True
@@ -116,26 +118,18 @@ def share_with_pods_restriction(operation, postid, limit, logger):
                 conn.commit()
 
             elif operation == "read":
-                if share_data is None:
+                if share_data is None or share_data["times"] < limit:
                     return False
 
-                elif share_data["times"] < limit:
-                    return False
-
-                else:
-                    exceed_msg = "" if share_data["times"] == limit else "more than "
-                    logger.info(
-                        "---> {} has already been shared with pods {}{} times".format(
-                            postid, exceed_msg, str(limit)
-                        )
-                    )
-                    return True
+                exceed_msg = "" if share_data["times"] == limit else "more than "
+                logger.info(
+                    f"---> {postid} has already been shared with pods {exceed_msg}{str(limit)} times"
+                )
+                return True
 
     except Exception as exc:
         logger.error(
-            "Dap! Error occurred with share Restriction:\n\t{}".format(
-                str(exc).encode("utf-8")
-            )
+            f'Dap! Error occurred with share Restriction:\n\t{str(exc).encode("utf-8")}'
         )
 
     finally:
@@ -184,26 +178,18 @@ def comment_restriction(operation, postid, limit, logger):
                 conn.commit()
 
             elif operation == "read":
-                if share_data is None:
+                if share_data is None or share_data["times"] < limit:
                     return False
 
-                elif share_data["times"] < limit:
-                    return False
-
-                else:
-                    exceed_msg = "" if share_data["times"] == limit else "more than "
-                    logger.info(
-                        "---> {} has been commented on {}{} times".format(
-                            postid, exceed_msg, str(limit)
-                        )
-                    )
-                    return True
+                exceed_msg = "" if share_data["times"] == limit else "more than "
+                logger.info(
+                    f"---> {postid} has been commented on {exceed_msg}{str(limit)} times"
+                )
+                return True
 
     except Exception as exc:
         logger.error(
-            "Dap! Error occurred with comment Restriction:\n\t{}".format(
-                str(exc).encode("utf-8")
-            )
+            f'Dap! Error occurred with comment Restriction:\n\t{str(exc).encode("utf-8")}'
         )
 
     finally:
